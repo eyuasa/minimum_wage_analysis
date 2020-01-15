@@ -1,0 +1,326 @@
+---
+title: "Final Projet Eryn Yuasa"
+author: "Eryn Yuasa"
+date: "11/14/2017"
+output: html_document
+---
+#Executive Summary 
+[1] Introduction 
+[2] Retrieving my dataset 
+[3] Data cleaning process  
+[4] How to use dataset 
+[5] Data visualizations - minimum wage 
+[6] Data visualizations - cost of living 
+[7] Comparing minimum wage and cost of living 
+[8] Different cost of living indexes
+[9] Linear regression between variables 
+[10] Will fight for $15 work with this model? 
+[11] Conclusion 
+
+#Introduction 
+
+In 2012, two hundred fast food workers in New York City walked off the job and demanded that they needed an increase in their pay in order to sustain livable conditions ("About Us"). This was the start of the movement soon to be known as "Fight for 15", a global movement on raising minimum wage in order to protest for a 15 dollar minimum wage globally. 
+
+Of course, this movement was met by many critics. A time-series meta-analysis on minimum wage stated that "one of the best-known predictions of standard economic theory is that an increase in the minimum wage will lower employment of low-wage workers" (Card, Krueger, 1995). And to add to the debate, what determines minimum wage anyways, and is there a reason why certain states have different middle wages? How does each state's individual cost of living indexes relate to the toal? Can a person reasonably sustain off of a minimum wage employment? Should they have to? 
+
+The purpose of this project is to examine these questions, and determine how different cost of living standards and indexes affect the way that people in the United States live. This project will examine the relationship between Cost of Living and Minimum wage throughout the United States. As government plays a role on determining minimum wage on a state by state basis, I want to see if states with higher cost of living will have higher minimum wages, and other relationships examined throughout the dataset. 
+
+#Retrieving my dataset 
+
+To find the most accurate and up to date information on Cost of Living Indexes and Minimum Wage throughout the United States, I looked at online resources in order to find my dataset that I will work with. 
+
+The first source of my data will be the Cost of Living Dataseries First Quarter 2017 from the Missouri Economic Research and Information Center which rates different states in terms of their cost of living over multiple aspects. I chose this dataset particularly because it allows you to focus on the different areas that make up cost of living, and with this I would be able to see which areas in the cost of living are the highest as well when doing my research. In order to download this file, you would go to this link: https://www.missourieconomy.org/indicators/cost_of_living/
+There is no direct download file, so I took the data from the First Quarter 2017 Cost of Living file and downloaded it to an excel spreadsheet. This spreadsheet is called COLI.xlsx. 
+
+The second source of my data will come from the dataset found on Wage and Hour Division (WHD) - Minimum Wage Laws in the States - July 1, 2017 conducted by United States Department of Labor. This was new data updated on July of 2017 with the states minimum wages, and the interesting aspect of this dataset is that it also breaks it up into which states fall above or below the federal minimum wage, and even separate states that don't have a minimum wage. The dataset can be found here: https://www.dol.gov/whd/minwage/america.htm. 
+There is no direct download file, so I took the data from the Consolidated State Minimum Wage Update Table (Effective Date: 07/01/2017) table at the bottom of the website and downloaded it to an excel spreadsheet. This spreadsheet is called mw.xlsx. 
+
+The observational units in my datasets are the individual states being studied in terms of their cost of living and their minimum wages.
+
+#Data cleaning process 
+```{r}
+library(tidyverse)
+```
+
+Step 1: 
+First I downloaded both of my datasets. Minimum Wage data was saved as mw.xlsx and the Cost of Living Index dataset was listed as COLI.xlsx. 
+I used the readxl command to read mw.xlsx into r studio
+
+Step 2: 
+I noticed that there were some "..." expressions in mw.xlsx which means that the states had no minimum wage. For that reason, when I read it, we added na = "..." to change all the "..." expressions into NA, meaning there was no minimum wage 
+
+Step 3
+My dataset originally had 4 columns, [1] State or Jurisdiction [2] 2014 [3] 2015 [4] 2016. Knowing that I needed to combine this dataset with the COLI.xlsx sheet, then I renamed [1] to state using the function 
+names(mw)[1] <- "State"
+Once it said state, I could run the command to rename it. 
+
+```{r}
+library(readxl)
+mw <- read_excel("data/mw.xlsx", na = "...",sheet = "Sheet1", range = "A1:D52") 
+names(mw)[1] <- "State"
+mw
+```
+
+Step 4 
+Because I'm combining two datasets, COLI.xlsx for Cost of Living Index and mw.xlsx for Minimum wage, I had to merge the files using the merge command into a final file called "final". Step 3 was very beneficial in this point to merge because COLI.xlsx had the states listed by their index number and the first column was labeled "State" Changing mw.xlsx column 1 from "State or Jurisdiction" to "State" allowed me to easily merge these datasets together. 
+
+To do this, I combined read_excel command for the COLI into a new file labeled "final" and then used final <- merge(mw, final) in order to merge these two together. 
+
+```{r}
+library(readxl)
+final <- read_excel("data/COLI.xlsx", sheet = "Sheet1", range = "A1:I52")
+final <- merge(mw, final)
+final
+```
+
+Step 5 
+My data is now easily organized into one final dataset with the states in column 1, and then the minimum wages for 2014, 2015, and 2016 as columns, but also the cost of living index ranking, and cost of living index for things such as groceries, housing, utilities, etc. as other columns. This is as far as the simplification of my data cleaning process goes for now because I want to at some point use all the rest of these variables in my final project.
+
+#How to use dataset 
+My dataset, after doing the data cleaning process as explained in the Week 6 Project Assignment, is called final, and it lists the States and then combined data from their minimum wages as reported by the state from 2014-2016 and their cost of living index in terms of total and breaking down cost of living into subsections like grocery, housing, and utility. 
+
+There are [12] columns in my dataset, which are 
+[1] State
+[2] 2014 
+[3] 2015 
+[4] 2016 
+[5] Rank 
+[6] Index 
+[7] Grocery 
+[8] Housing 
+[9] Utilities 
+[10] Transportation 
+[11] Health 
+[12] Misc. 
+
+columns 2-4 lists the minimum wage for each state in years 2014, 2015, and 2016. 
+column 5 lists the ranking of the states in terms of their cost of living with highest being 1 and lowest being 51. 
+column 6 lists the total (index) cost of living for each of the states 
+columns 7-12 list the cost of living index for each state in particular subsections 
+
+My dataset will help me answer the question by allowing me to do comparisons and visual representations of the differentminimum wages by state and cost of living. Wit these representations, I'll be able to see if there is a relationship between my variables. 
+
+#Data visualizations - minimum wage 
+
+Here is a chart of the 2016 minimum wage for state by state. As we can see, the federal minimum wage in 2016 is $7.25 and that is where a lot of the states lay around ("Minimum Wages"). We can see that there are 16 states that have adapted to just the federal minimum wage. We can also see that places like Washington D.C., Massachusetts, Pennsylvania, etc. have some of the highest minimum wages. 
+
+```{r}
+final %>%
+  ggplot(aes(State, `2016`)) +
+  geom_point() +
+  geom_hline(yintercept = 7.25, color = "green") + 
+  theme(axis.text.x = element_text(angle = 90, hjust =1)) 
+```
+
+I then found the mean for 2016 and then plotted the same point with the federal minimum wage as the green line and the mean of the 2016 minimum wages for state as the blue line to see which states are above and below the mean. 
+
+```{r}
+final %>%
+  ggplot(aes(State, `2016`)) +
+  geom_point() +
+  geom_hline(yintercept = 7.25, color = "green") + 
+  geom_hline(yintercept = 7.97, color = "blue") + 
+  theme(axis.text.x = element_text(angle = 90, hjust =1))
+```
+
+#Data visualizations - cost of living 
+
+Here is a state by state visualization of states listed on the X axis and the rank of their Cost of Living Index listed on the Y axis, with the highest ranking being the highest Cost of Living. 
+
+```{r}
+final%>%
+  ggplot(aes(State, Rank)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust =1))
+```
+
+The numbers were also indexed by the Missouri Economic Center as well for the Cost of Living Index, putting the US average cost of living index at 100, indicated by a red line at the bottom. As we can see just based on looking, 
+
+```{r}
+final%>%
+  ggplot(aes(State, Index)) +
+  geom_point() + 
+  geom_hline(yintercept = 100, color = "red") + 
+  theme(axis.text.x = element_text(angle = 90, hjust =1))
+```
+
+I found the standard error of the Cost of Living to be 14.14 points below or above the index. 
+```{r}
+se <- 100 / sqrt(50)
+se
+```
+
+This next chart shows the Cost of Living Index again with blue lines to show the standard error that we found and the red line showing the mean at 100. 
+
+```{r}
+final %>%
+  ggplot(aes(State, Index)) +
+  geom_point() + 
+  geom_hline(yintercept = 100, color = "red") + 
+  geom_hline(yintercept  = 85.86, color = "blue") +
+  geom_hline(yintercept = 114.14, color = "blue") + 
+  theme(axis.text.x = element_text(angle = 90, hjust =1))
+```
+
+#Comparing minimum wage and cost of living 
+
+Here is our first visualization in seeing the correlation or possible relationship between cost of living indexes and minimum wage. As you can see, I used geom_smooth to show a shaded confidence interval in my data. We can see that there is an upward curve in the line, which begins to show that the higher the cost of living index for the states, the higher the minimum wage. 
+
+```{r}
+final %>%
+  ggplot(aes(Index, `2016`, color = `Rank`)) +
+  geom_point() + 
+  geom_smooth() + 
+  theme(axis.text.x = element_text(angle = 90, hjust =1)) 
+```
+
+I then looked to see if there was a difference in Cost of Living Indexes for states with minimum wages at 7.25, the federal minimum wage, and above it. First we have a boxplot of the minimum wage of 7.25, and, as you can see, the Cost of Living Index for this range has a mean of around 95, below the national average, and a 25th percentile of around 92 and 75th percentile a little over 100. This shows that, generally, when you have a lower minimum wage your cost of living index is generally lower and most of the time below the national average. However, we do see that this boxplot is skewed and there is a max data point up at almost 112.5. 
+
+
+```{r}
+final %>% 
+  filter(`2016` == 7.25) %>%
+  ggplot(aes(`2016`, Index)) +
+  geom_boxplot()
+```
+
+```{r}
+final %>% 
+  filter(`2016` == 7.25) %>%
+  ggplot(aes(`2016`, Index)) +
+  geom_violin()
+```
+
+Next, I looked at the cost of living index for states with minimum wages above 7.25. We can see here that the cost of living index is generally higher, with a mean of between 100 and 112, and the data even stretches to well over 150 at the high range of the dataset. Both quartiles are higher than the index for states with a minimum wage at 7.25. 
+
+```{r}
+final %>% 
+  filter(`2016` > 7.25) %>%
+  ggplot(aes(`2016`, Index)) +
+  geom_boxplot()
+```
+
+```{r}
+final %>% 
+  filter(`2016` > 7.25) %>%
+  ggplot(aes(`2016`, Index)) +
+  geom_violin()
+```
+
+#Different cost of living indexes 
+
+First, remember that the different cost of living breakdowns in my dataset are 
+[7] Grocery 
+[8] Housing 
+[9] Utilities 
+[10] Transportation 
+[11] Health 
+[12] Misc. 
+
+I'm going to focus on looking at housing, utilities, and transportation and see how the relationship is between the cost of living index (an overall measure) and those specific subsections of cost of living through scatterplots. Housing costs seemes to have the strongest positive correlation to the cost of living index as a whole.
+
+```{r}
+final%>%
+  ggplot(aes(Index, Housing, color = `2016`)) +
+  geom_point() + 
+  geom_hline(yintercept = 100, color = "red") + 
+  geom_vline(xintercept = 100, color = "blue") + 
+  geom_smooth()
+```
+
+```{r}
+final%>%
+  ggplot(aes(Index, Utilities, color = `2016`)) +
+  geom_point() + 
+  geom_hline(yintercept = 100, color = "red") + 
+  geom_vline(xintercept = 100, color = "blue") + 
+  geom_smooth()
+```
+
+
+```{r}
+final%>%
+  ggplot(aes(Index, Transportation, color = `2016`)) +
+  geom_point() + 
+  geom_hline(yintercept = 100, color = "red") + 
+  geom_vline(xintercept = 100, color = "blue") + 
+  geom_smooth()
+```
+
+This data above showed us that the cost of living for different subsections like housing, utilities, and transportation is generally the same as the cost of living index, or follows the same patterns where a state that's low in one will be low in their subsection, and vice versa. 
+
+#Linear regression between variables 
+
+```{r}
+m1 <- lm(Index ~ `2016`, data = final)
+```
+
+```{r}
+summary(m1)
+```
+
+\[
+  \hat{y} = 45.562 + 7.620 * 2016 min wage
+\]
+
+We see based on this formula that for every $1 increase in minimum wage, the cost of living index will increase by 7.620x + 45.562. For this model, 38.35% of the variability is explained by minimum wage for 2016, as we can tell by the Multiple R-squared value. 
+
+```{r}
+summary(final$Index)
+```
+
+```{r}
+plot(final$Index ~ final$`2016`)
+abline(m1)
+```
+
+In order to determine if this model is reliable, we have to look at linearity, constant variability, nearly normal residules 
+
+Just by looking at nearly normal residules, we can look at a histogram of the residules and the Normal Q-Q Plot. This histogram shows that the data is skewed and there are outliers present in the high range of the data residules, as shown by the data in the right near the box between 50 and 60 for residules. 
+```{r}
+hist(m1$residuals)
+```
+
+When we look at the Normal Q-Q plot as well, we also see that the data isn't that normal, making the model unrealiable because the points don't match up to the line very well. 
+```{r}
+qqnorm(m1$residuals)
+qqline(m1$residuals)
+```
+
+#Will fight for $15 work with this model? 
+As brought up in my introduction, I still want to see what conditions would be like if the Fight for 15 dollar movement was successful and everyone had a 15 dollar minimum wage. Disregarding the normality constraints of the model, we see that by using the formula: 
+
+\[
+  \hat{y} = 45.562 + 7.620 * 2016 min wage
+\]
+
+= 159.862 index for cost of living. 
+
+This is a relatively high cost of living index as we can see, and it will be comparable to place with high cost of living like Hawaii (166 cost of living). This is a visualization with a green line to represent where the Cost of Living would now be for a 15 dollar predicted minimum wage. 
+
+```{r}
+final%>%
+  ggplot(aes(State, Index)) +
+  geom_point() + 
+  geom_hline(yintercept = 100, color = "red") + 
+  geom_hline(yintercept = 159.862, color = "green") + 
+  theme(axis.text.x = element_text(angle = 90, hjust =1))
+```
+
+#Conclusion
+After looking at my data, I am able to find a positive correlation between minimum wage for states and cost of living index. Looking at various data visualizations and linear regression allowed me to see that there is a correlation between the variables and we should consider both when we look at regulations for minimum wage or cost of living. 
+
+Going back to my introduction, however, when I think about the movement to "fight for $15", I ultimately think that will be a challenge and dramatically increase the cost of living for most people, and make small business less affordable and practical. I enjoy looking at minimum wage though and examining policy. 
+
+If I were to fix anything about the research that I've done, I would make sure to take in account for variables and data points in my dataset that could've been throwing off the calculations that I did. For example, some states list tipped employee salary as their minimum wage, which is generally lower to account for tips and, thus, sometimes fell below the 7.25 dollar line. In order to make the data more accurate, I could've taken out these points when doing my calculations or my visualizations. 
+
+#Works Cited 
+"About Us" (n.d.). Fight for 15.  Retrieved from https://fightfor15.org/about-us/
+
+Card, D., Krueger, Alan B. (1995) "Time-Series Minimum-Wage Studies: A Meta-analysis". The American Economic Review, Vol. 85, No. 2. Retrieved from http://people.hss.caltech.edu/~camerer/SS280/Card-Kruger-AER_Jan95.pdf
+
+Division of Communication Wage and Hour Division of the Department of Labor. (2017) "Wage and Hour Division (WHD) Minimum Wage Laws in the State". United States Department of Labor. Retrieved from https://www.dol.gov/whd/minwage/america.htm.
+
+n.a. (2017). "Minimum Wages".Paywizard.org. Retrieved from https://paywizard.org/main/salary/minimum-wage
+
+
